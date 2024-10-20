@@ -51,7 +51,13 @@ class IRCSession: # Actual IRC session
         else:
             self.socket.connect((self.server, self.port))
         self.connecting = True
-        return False
+        self.send("USER " + self.user + " " + self.user + " " + self.nick + " :SugarCaneIRC user\n")
+        self.send(f"NICK {self.nick}\n")
+    def send(self, content:str): # Attempt to send raw data to the socket
+        if self.ssl:
+            self.wsocket.send(bytes(content,"UTF-8"))
+        else:
+            self.socket.send(bytes(content,"UTF-8"))
     def get(self): # Attempt to get the raw data and parse it.
         # The code is copied from sweeBotIRC btw
         if self.ssl:
