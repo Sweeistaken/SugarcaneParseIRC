@@ -78,6 +78,7 @@ class IRCSession: # Actual IRC session
             self.send(f"PART {chan}")
     def privmsg(self, target:str, content:str):
         self.send(f"PRIVMSG {target} :{content}")
+        self.messages.append(Message(content=content, chan=target, nick=self.nick))
     def close(self):
         if self.ssl:
             self.wsocket.close()
