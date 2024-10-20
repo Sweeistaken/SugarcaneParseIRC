@@ -4,7 +4,7 @@ IRC Parser for the SugarCaneIRC family.
 import socket
 import ssl as ssl_module
 import threading
-__version__ = 0
+__version__ = "_TEST_"
 class SystemMessage: # System message object
     def __init__(self, content:str, user:str, typ:str, mention:bool, chan=None):
         self.content, self.user, self.type, self.mention, self.chan = content,user,typ,mention,chan
