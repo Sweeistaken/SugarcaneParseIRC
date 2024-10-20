@@ -23,6 +23,9 @@ class channel: # Channel object
     def info_set(self, topic:str, modes:str): # Socket will automatically initialize the channel object
         self.is_init = True
         self.topic, self.modes = topic, modes
+class user: # User object
+    def __init__(self, name:str, system:bool=False, realname:str|None=None, username:str|None=None, host:str|None=None):
+        self.name, self.system, self.realname, self.username = name,system,realname,username
 class IRCSession: # Actual IRC session
     messages = [] # Cached messages
     raw_text = "" # Cached RAW data
@@ -78,18 +81,22 @@ class IRCSession: # Actual IRC session
             r = self.socket.recv(2040).decode()
         self.raw_text += r
         self.parseall()
-        print(r)
         if r.find("PING") != -1:
             self.send(
                "PONG " + r.split()[1] + "\r\n"
             )
         if not r:
             self.connected = False
+        return r
     def parseall(self): # Parse all of the fetched raw data, in a thread.
         threading.Thread(target=self.parse, kwargs={"content": self.raw_text})
     def parse(self, content:str):
         for i in content.replace("\r\n", "\n").split("\n"):
-            pass
+            spaced = i.split(" ")
+            system_ = not "@" in i[0]
+            if len(i) > 4:
+                if i[1] == "NOTICE":
+                    self.messages.append(systemMessage(content=i[3][1:],user=user(name=i[0][1:] if not "@" in i[0] else i[0][1:].split("!")[0], system=system_), typ="notice", mention=not system_))
     def alive(self): # NOT FINISHED: To minimize exceptions, the client can ask the object if the socket connection is still alive.
         return False
     def whois(self, nick:str): # NOT FINISHED: Try to /whois the user, will return a user() object or None.
