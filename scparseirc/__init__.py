@@ -37,7 +37,7 @@ class IRCSession: # Actual IRC session
     wsocket = None # Wrapped socket (if SSL is enabled)
     context = ssl_module.create_default_context() # Context of the SSL module, not to be changed by the client.
     def __init__(self, address:str="irc.libera.chat", port:int=6697, nick:str="sweetAsSugar", user:str="sugarCaneIRC", ssl:bool=True, ssl_igninvalid:bool=False, **kwargs): # Contains the configuration
-        self.irc_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.context = ssl_module.create_default_context()
         self.wsocket = None
         self.server, self.port, self.nick, self.user, self.ssl, self.ssl_accept_invalid = address,port,nick,user,ssl,ssl_igninvalid
@@ -62,7 +62,7 @@ class IRCSession: # Actual IRC session
         else:
             self.socket.send(bytes(content,"UTF-8"))
     def quit(self, message="SugarCaneParseIRC version " + __version__):
-        self.send(f"QUIT {message}\n")
+        self.send(f"QUIT : {message}\n")
         self.close()
     def close(self):
         if self.ssl:
