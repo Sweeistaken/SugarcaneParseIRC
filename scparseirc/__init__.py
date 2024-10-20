@@ -62,7 +62,7 @@ class IRCSession: # Actual IRC session
         else:
             self.socket.send(bytes(content,"UTF-8"))
     def quit(self, message="ScParseIRC v" + __version__):
-        self.send(f"QUIT :{message}\r\n")
+        self.send(f"QUIT {message}\r\n")
         self.connected = False
     def join(self, chan):
         self.chans += channel(chan)
