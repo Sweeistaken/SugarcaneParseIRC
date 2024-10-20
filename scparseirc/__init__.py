@@ -4,9 +4,9 @@ IRC Parser for the SugarCaneIRC family.
 import socket
 import ssl as ssl_module
 class message: # Message object
-    def __init__(self, content:str, channel:str, nick:str):
+    def __init__(self, content:str, chan:str, nick:str):
         self.content = content
-        self.channel = channel
+        self.channel = chan
         self.nick = nick
 class channel: # Channel object
     is_init = False # If the channel's properties are initialized yet
