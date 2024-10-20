@@ -4,6 +4,7 @@ IRC Parser for the SugarCaneIRC family.
 import socket
 import ssl as ssl_module
 import threading
+__version__ = "_TEST_"
 class systemMessage: # System message object
     chan = None
     def __init__(self, content:str, user:str, typ:str, mention:bool, **kwargs):
@@ -29,7 +30,7 @@ class IRCSession: # Actual IRC session
     messages = [] # Cached messages
     raw_text = "" # Cached RAW data
     channels = [] # Cached channels
-    connecting = False # Connection status
+    connected = False # Connection status
     is_ssl = False # Wether the connection uses TLS/SSL
     ssl_accept_invalid = False # If SSL is enabled, do not fail to connect if the certificate is invalid.
     socket = socket.socket() # Socket
@@ -54,10 +55,21 @@ class IRCSession: # Actual IRC session
         self.send("USER " + self.user + " " + self.user + " " + self.nick + " :SugarCaneIRC user\n")
         self.send(f"NICK {self.nick}\n")
     def send(self, content:str): # Attempt to send raw data to the socket
+        if content[len(content)-1] != "\n":
+            content+="\n"
         if self.ssl:
             self.wsocket.send(bytes(content,"UTF-8"))
         else:
             self.socket.send(bytes(content,"UTF-8"))
+    def quit(self, message="SugarCaneParseIRC version " + __version__):
+        self.send(f"QUIT {message}\n")
+        self.close()
+    def close(self):
+        if self.ssl:
+            self.wsocket.close()
+        else:
+            self.socket.close()
+        self.connected = False
     def get(self): # Attempt to get the raw data and parse it.
         # The code is copied from sweeBotIRC btw
         if self.ssl:
@@ -68,8 +80,8 @@ class IRCSession: # Actual IRC session
         self.parseall()
         print(r)
         if r.find("PING") != -1:
-            self.irc_socket.send(
-                bytes("PONG " + r.split()[1] + "\r\n", "UTF-8")
+            self.send(
+               "PONG " + r.split()[1] + "\r\n"
             )
     def parseall(self): # Parse all of the fetched raw data, in a thread.
         threading.Thread(target=self.parse, kwargs={"content": self.raw_text})
