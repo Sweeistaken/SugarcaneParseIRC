@@ -26,5 +26,5 @@ class IRCSession: # Actual IRC session
         return False
     def alive(self): # NOT FINISHED: To minimize exceptions, the client can ask the object if the socket connection is still alive.
         return False
-    def whois(self, nick:str): # Try to /whois the user, will return a user() object or None.
+    def whois(self, nick:str): # NOT FINISHED: Try to /whois the user, will return a user() object or None.
         return None
