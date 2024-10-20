@@ -54,12 +54,16 @@ class IRCSession: # Actual IRC session
         r = self.socket.recv().recv(2040).decode()
         self.raw_text += r
         self.parseall()
+        print(r)
         if r.find("PING") != -1:
             self.irc_socket.send(
                 bytes("PONG " + r.split()[1] + "\r\n", "UTF-8")
             )
     def parseall(self): # Parse all of the fetched raw data, in a thread.
         threading.Thread(target=self.parse, kwargs={"content": self.raw_text})
+    def parse(self, content:str):
+        for i in content.replace("\r\n", "\n").split("\n"):
+            pass
     def alive(self): # NOT FINISHED: To minimize exceptions, the client can ask the object if the socket connection is still alive.
         return False
     def whois(self, nick:str): # NOT FINISHED: Try to /whois the user, will return a user() object or None.
