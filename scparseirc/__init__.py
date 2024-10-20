@@ -61,8 +61,8 @@ class IRCSession: # Actual IRC session
             self.wsocket.send(bytes(content,"UTF-8"))
         else:
             self.socket.send(bytes(content,"UTF-8"))
-    def quit(self, message:str=f"ScParseIRC v{__version__}"):
-        self.send("QUIT :" + message + " \n")
+    def quit(self, message:str="ScParseIRC v" + str(__version__)): # Send the server a signal that the client is about to quit, and rely on the server to close the connection.
+        self.send("QUIT :" + message + "\n")
         self.connected = False
     def join(self, chan):
         self.chans.append(channel(chan))
