@@ -28,9 +28,9 @@ class IRCSession: # Actual IRC session
     def __init__(self, address:str, port:int, nick:str, user:str, ssl:bool, ssl_igninvalid:bool, *args, **kwargs): # Contains the configuration
         self.server, self.port, self.nick, self.user, self.ssl, self.ssl_accept_invalid = address,port,nick,user,ssl,ssl_igninvalid
         if ssl:
-            self.wsocket = self.context.wrap_socket(self.socket, server_hostname=address)
             if ssl_igninvalid:
                 self.context = ssl_module._create_unverified_context()
+            self.wsocket = self.context.wrap_socket(self.socket, server_hostname=address)
     def connect(self): # Attempt to connect
         print("Connecting to " + self.server + ":" + str(self.port) + "...")
         if self.ssl:
