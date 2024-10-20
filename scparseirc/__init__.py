@@ -51,7 +51,7 @@ class IRCSession: # Actual IRC session
         return False
     def get(self): # Attempt to get the raw data and parse it.
         # The code is copied from sweeBotIRC btw
-        r = self.socket.recv().recv(2040).decode()
+        r = self.socket.recv(2040).decode()
         self.raw_text += r
         self.parseall()
         print(r)
