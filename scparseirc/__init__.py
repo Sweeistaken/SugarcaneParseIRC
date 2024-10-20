@@ -93,10 +93,10 @@ class IRCSession: # Actual IRC session
     def parse(self, content:str):
         for i in content.replace("\r\n", "\n").split("\n"):
             spaced = i.split(" ")
-            system_ = not "@" in i[0]
-            if len(i) > 4:
-                if i[1] == "NOTICE":
-                    self.messages.append(systemMessage(content=i[3][1:],user=user(name=i[0][1:] if not "@" in i[0] else i[0][1:].split("!")[0], system=system_), typ="notice", mention=not system_))
+            system_ = not "@" in spaced[0]
+            if len(spaced) > 4:
+                if spaced[1] == "NOTICE":
+                    self.messages.append(systemMessage(content=spaced[3][1:],user=user(name=spaced[0][1:] if not "@" in spaced[0] else spaced[0][1:].split("!")[0], system=system_), typ="notice", mention=not system_))
     def alive(self): # NOT FINISHED: To minimize exceptions, the client can ask the object if the socket connection is still alive.
         return False
     def whois(self, nick:str): # NOT FINISHED: Try to /whois the user, will return a user() object or None.
