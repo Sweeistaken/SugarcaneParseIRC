@@ -14,13 +14,13 @@ class channel: # Channel object
         self.is_init = True
         self.topic, self.modes = topic, modes
 class IRCSession: # Actual IRC session
-    messages = None
-    connecting = False
-    socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    messages = None # Cached messages
+    connecting = False # Connection status
+    socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Socket
     def __init__(self, address:str, port:int, nick:str, user:str, *args, **kwargs): # Contains the configuration
         self.server, self.port, self.nick, self.user = address,port,nick,user
-        print("Defined IRC session with server " + address + " port " + str(port))
     def connect(self): # Attempt to connect
+        print("Connecting to " + self.server + ":" + str(self.port) + "...")
         self.socket.connect((self.server, self.port))
         self.connecting = True
         return False
