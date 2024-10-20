@@ -29,7 +29,7 @@ class channel: # Channel object
 class IRCSession: # Actual IRC session
     messages = [] # Cached messages
     raw_text = "" # Cached RAW data
-    channels = [] # Cached channels
+    chans = [] # Cached channels
     connected = False # Connection status
     is_ssl = False # Wether the connection uses TLS/SSL
     ssl_accept_invalid = False # If SSL is enabled, do not fail to connect if the certificate is invalid.
