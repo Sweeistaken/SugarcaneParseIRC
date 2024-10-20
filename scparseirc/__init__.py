@@ -5,15 +5,15 @@ import socket
 import ssl as ssl_module
 import threading
 __version__ = 0
-class systemMessage: # System message object
+class SystemMessage: # System message object
     def __init__(self, content:str, user:str, typ:str, mention:bool, chan=None):
         self.content, self.user, self.type, self.mention, self.chan = content,user,typ,mention,chan
-class message: # Message object
+class Message: # Message object
     def __init__(self, content:str, chan:str, nick:str):
         self.content = content
         self.channel = chan
         self.nick = nick
-class channel: # Channel object
+class Channel: # Channel object
     is_init = False # If the channel's properties are initialized yet
     topic = "" # Channel topic
     modes = "+nt" # Channel modes
@@ -23,7 +23,7 @@ class channel: # Channel object
     def info_set(self, topic:str, modes:str): # Socket will automatically initialize the channel object
         self.is_init = True
         self.topic, self.modes = topic, modes
-class user: # User object
+class User: # User object
     def __init__(self, name:str, system:bool=False, realname:str|None=None, username:str|None=None, host:str|None=None):
         self.name, self.system, self.realname, self.username = name,system,realname,username
 class IRCSession: # Actual IRC session
@@ -65,7 +65,7 @@ class IRCSession: # Actual IRC session
         self.send("QUIT :" + message + "\n")
         self.connected = False
     def join(self, chan):
-        self.chans.append(channel(chan))
+        self.chans.append(Channel(chan))
         self.send(f"JOIN {chan}")
     def close(self):
         if self.ssl:
@@ -89,14 +89,21 @@ class IRCSession: # Actual IRC session
             self.connected = False
         return r
     def parseall(self): # Parse all of the fetched raw data, in a thread.
-        threading.Thread(target=self.parse, kwargs={"content": self.raw_text})
-    def parse(self, content:str):
+        threading.Thread(target=self._dump_message_cache, kwargs={"content": self.raw_text}).start()
+    def _dump_message_cache(self, content:str): # The thread of parsing all of the raw data, dumping all of it in the messages list.
+        self.messages = self.parse(content)
+    def parse(self, content:str): # Attempt to parse raw data into a Message or SystemMessage object
+        cache = []
         for i in content.replace("\r\n", "\n").split("\n"):
             spaced = i.split(" ")
             system_ = not "@" in spaced[0]
             if len(spaced) > 4:
                 if spaced[1] == "NOTICE":
-                    self.messages.append(systemMessage(content=spaced[3][1:],user=user(name=spaced[0][1:] if not "@" in spaced[0] else spaced[0][1:].split("!")[0], system=system_), typ="notice", mention=not system_))
+                    cache.append(SystemMessage(content=" ".join(spaced[3:])[1:],user=User(name=spaced[0][1:] if not "@" in spaced[0] else spaced[0][1:].split("!")[0], system=system_), typ="notice", mention=not system_))
+        if len(cache) == 1:
+            return cache[0]
+        else:
+            return cache
     def alive(self): # NOT FINISHED: To minimize exceptions, the client can ask the object if the socket connection is still alive.
         return False
     def whois(self, nick:str): # NOT FINISHED: Try to /whois the user, will return a user() object or None.
