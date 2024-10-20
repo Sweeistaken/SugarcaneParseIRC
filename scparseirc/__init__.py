@@ -6,11 +6,8 @@ import ssl as ssl_module
 import threading
 __version__ = 0
 class systemMessage: # System message object
-    chan = None
-    def __init__(self, content:str, user:str, typ:str, mention:bool, **kwargs):
-        self.content, self.user, self.type, self.mention = content,user,typ,mention
-        if "chan" in kwargs:
-            self.chan = kwargs["chan"]
+    def __init__(self, content:str, user:str, typ:str, mention:bool, chan=None):
+        self.content, self.user, self.type, self.mention, self.chan = content,user,typ,mention,chan
 class message: # Message object
     def __init__(self, content:str, chan:str, nick:str):
         self.content = content
@@ -36,7 +33,7 @@ class IRCSession: # Actual IRC session
     socket = socket.socket() # Socket
     wsocket = None # Wrapped socket (if SSL is enabled)
     context = ssl_module.create_default_context() # Context of the SSL module, not to be changed by the client.
-    def __init__(self, address:str="irc.libera.chat", port:int=6697, nick:str="sweetAsSugar", user:str="ScParseIRC", ssl:bool=True, ssl_igninvalid:bool=False, realname:str="SugarcaneParseIRC user", **kwargs): # Contains the configuration
+    def __init__(self, address:str="irc.libera.chat", port:int=6697, nick:str="sweetAsSugar", user:str="ScParse", ssl:bool=True, ssl_igninvalid:bool=False, realname:str="SugarcaneParseIRC user", **kwargs): # Contains the configuration
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.context = ssl_module.create_default_context()
         self.wsocket = None
@@ -86,6 +83,8 @@ class IRCSession: # Actual IRC session
             self.send(
                "PONG " + r.split()[1] + "\r\n"
             )
+        if not r:
+            self.connected = False
     def parseall(self): # Parse all of the fetched raw data, in a thread.
         threading.Thread(target=self.parse, kwargs={"content": self.raw_text})
     def parse(self, content:str):
