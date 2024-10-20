@@ -54,6 +54,15 @@ class IRCSession: # Actual IRC session
         self.connected = True
         self.send("USER " + self.user + " " + self.user + " " + self.nick + " :SugarCaneIRC user\n")
         self.send(f"NICK {self.nick}\n")
+    def detach_connection(self):
+        print("Detaching connection to a thread...")
+        threading.Thread(target=self.getloop,daemon=True).start()
+    def getloop(self):
+        while self.connected:
+            try:
+                self.get()
+            except:
+                pass
     def send(self, content:str): # Attempt to send raw data to the socket
         if content[len(content)-1] != "\n":
             content+="\n"
