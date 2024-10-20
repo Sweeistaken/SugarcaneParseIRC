@@ -4,7 +4,7 @@ IRC Parser for the SugarCaneIRC family.
 import socket
 import ssl as ssl_module
 import threading
-__version__ = "_TEST_"
+__version__ = 0
 class systemMessage: # System message object
     chan = None
     def __init__(self, content:str, user:str, typ:str, mention:bool, **kwargs):
@@ -61,10 +61,9 @@ class IRCSession: # Actual IRC session
             self.wsocket.send(bytes(content,"UTF-8"))
         else:
             self.socket.send(bytes(content,"UTF-8"))
-    def quit(self, message:str="ScParseIRC v"+__version__):
+    def quit(self, message:str=f"ScParseIRC v{__version__}"):
         self.send(f"QUIT :" + message + "\n")
         self.connected = False
-        self.close()
     def join(self, chan):
         self.chans.append(channel(chan))
         self.send(f"JOIN {chan}")
