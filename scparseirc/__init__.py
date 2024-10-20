@@ -61,11 +61,12 @@ class IRCSession: # Actual IRC session
             self.wsocket.send(bytes(content,"UTF-8"))
         else:
             self.socket.send(bytes(content,"UTF-8"))
-    def quit(self, message="ScParseIRC v" + __version__):
-        self.send(f"QUIT {message}\r\n")
+    def quit(self, message:str="ScParseIRC v"+__version__):
+        self.send(f"QUIT :{message}\r\n")
         self.connected = False
+        self.close()
     def join(self, chan):
-        self.chans += channel(chan)
+        self.chans.append(channel(chan))
         self.send(f"JOIN {chan}")
     def close(self):
         if self.ssl:
