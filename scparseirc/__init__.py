@@ -67,6 +67,17 @@ class IRCSession: # Actual IRC session
     def join(self, chan):
         self.chans.append(Channel(chan))
         self.send(f"JOIN {chan}")
+    def part(self, chan:str, message:str="ScParseIRC v"+str(__version__)):
+        complete = False
+        for i in self.chans:
+            if i.name == chan:
+                i.in_channel = False
+                complete = True
+                break
+        if complete:
+            self.send(f"PART {chan}")
+    def privmsg(self, target:str, content:str):
+        self.send(f"PRIVMSG {target} :{content}")
     def close(self):
         if self.ssl:
             self.wsocket.close()
