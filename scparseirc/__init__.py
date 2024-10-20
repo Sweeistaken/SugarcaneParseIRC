@@ -51,7 +51,7 @@ class IRCSession: # Actual IRC session
             self.wsocket.connect((self.server, self.port))
         else:
             self.socket.connect((self.server, self.port))
-        self.connecting = True
+        self.connected = True
         self.send("USER " + self.user + " " + self.user + " " + self.nick + " :SugarCaneIRC user\n")
         self.send(f"NICK {self.nick}\n")
     def send(self, content:str): # Attempt to send raw data to the socket
@@ -63,7 +63,10 @@ class IRCSession: # Actual IRC session
             self.socket.send(bytes(content,"UTF-8"))
     def quit(self, message="ScParseIRC v" + __version__):
         self.send(f"QUIT :{message}\r\n")
-        self.close()
+        self.connected = False
+    def join(self, chan):
+        self.chans += channel(chan)
+        self.send(f"JOIN {chan}")
     def close(self):
         if self.ssl:
             self.wsocket.close()
