@@ -5,17 +5,9 @@ import socket
 import ssl as ssl_module
 import threading
 __version__ = "_TEST_"
-class SystemMessage: # System message object
-    def __init__(self, content:str, user:str, typ:str, mention:bool, chan:str|None=None):
-        self.content, self.user, self.type, self.mention, self.chan = content,user,typ,mention,chan
-class Message: # Message object
-    def __init__(self, content:str, chan:str, nick:str):
-        self.content = content
-        self.channel = chan
-        self.nick = nick
-class ParserMessage: # Parser message
-    def __init__(self, content, chan:str|None=None):
-        self.content, self.chan = content, chan
+class User: # User object
+    def __init__(self, name:str, system:bool=False, realname:str|None=None, username:str|None=None, host:str|None=None):
+        self.name, self.system, self.realname, self.username = name,system,realname,username
 class Channel: # Channel object
     is_init = False # If the channel's properties are initialized yet
     topic = "" # Channel topic
@@ -26,9 +18,17 @@ class Channel: # Channel object
     def info_set(self, topic:str, modes:str): # Socket will automatically initialize the channel object
         self.is_init = True
         self.topic, self.modes = topic, modes
-class User: # User object
-    def __init__(self, name:str, system:bool=False, realname:str|None=None, username:str|None=None, host:str|None=None):
-        self.name, self.system, self.realname, self.username = name,system,realname,username
+class SystemMessage: # System message object
+    def __init__(self, content:str, user:User, typ:str, mention:bool, chan:str|None=None):
+        self.content, self.user, self.type, self.mention, self.chan = content,user,typ,mention,chan
+class Message: # Message object
+    def __init__(self, content:str, user:User, target:User|Channel|str):
+        self.content = content
+        self.target = target
+        self.author = user
+class ParserMessage: # Parser message
+    def __init__(self, content, chan:str|None=None):
+        self.content, self.chan = content, chan
 class IRCSession: # Actual IRC session
     messages = [] # Cached messages
     raw_text = "" # Cached RAW data
@@ -124,14 +124,19 @@ class IRCSession: # Actual IRC session
             spaced = i.split(" ")
             system_ = not "@" in spaced[0]
             if len(spaced) > 4:
-                if spaced[1] == "NOTICE":
+                if spaced[1] == "NOTICE": # Notice (Can be sent from the server or a user.)
                     cache.append(SystemMessage(content=" ".join(spaced[3:])[1:],user=User(name=spaced[0][1:] if not "@" in spaced[0] else spaced[0][1:].split("!")[0], system=system_), typ="notice", mention=not system_))
-                elif spaced[1] == "001":
+                elif spaced[1] == "001": # Type 001 (Welcome to ... Internet Relay Chat Network [nick])
                     cache.append(ParserMessage(content="Server reports name \"" + spaced[6] + "\""))
-                elif spaced[1] == "003":
+                elif spaced[1] == "003": # Type 003 (Server was created in...)
                     cache.append(ParserMessage(content="Server reports creation time " + " ".join(spaced[7:])))
-                elif spaced[1] == "433":
+                elif spaced[1] == "433": # Type 443 (Nick already in use)
                     cache.append(SystemMessage(content=" ".join(spaced[4:])[1:],user=User(name=spaced[0][1:], system=True), typ="error", mention=True))
+
+
+                elif spaced[1] == "PRIVMSG": # IRC messages
+                    token1=spaced[0][1:]
+                    cache.append(Message(content=" ".join(spaced[4:])[1:], user=User(name=token1.split("!")[0], username=token1.split("!")[1].split("@")[0], host=token1.split("!")[1].split("@")[1])))
         if len(cache) == 1:
             return cache[0]
         else:
