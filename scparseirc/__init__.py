@@ -140,7 +140,7 @@ class IRCSession: # Actual IRC session
                 elif spaced[1] == "PRIVMSG": # IRC messages
                     token1=spaced[0][1:]
                     channel = spaced[2]
-                    cache.append(Message(content=" ".join(spaced[4:])[1:-2], user=User(name=token1.split("!")[0], username=token1.split("!")[1].split("@")[0], host=token1.split("!")[1].split("@")[1]), target=Channel(name=channel) if channel[0] == "#" else self.yourself))
+                    cache.append(Message(content=" ".join(spaced[3:][1:]), user=User(name=token1.split("!")[0], username=token1.split("!")[1].split("@")[0], host=token1.split("!")[1].split("@")[1]), target=Channel(name=channel) if channel[0] == "#" else self.yourself))
         if len(cache) == 1:
             return cache[0]
         else:
