@@ -14,8 +14,8 @@ class Message: # Message object
         self.channel = chan
         self.nick = nick
 class ParserMessage: # Parser message
-    def __init__(self, content, name:str="Parser", chan:str|None=None):
-        self.content, self.name, self.chan = content, name, chan
+    def __init__(self, content, chan:str|None=None):
+        self.content, self.chan = content, chan
 class Channel: # Channel object
     is_init = False # If the channel's properties are initialized yet
     topic = "" # Channel topic
@@ -127,9 +127,9 @@ class IRCSession: # Actual IRC session
                 if spaced[1] == "NOTICE":
                     cache.append(SystemMessage(content=" ".join(spaced[3:])[1:],user=User(name=spaced[0][1:] if not "@" in spaced[0] else spaced[0][1:].split("!")[0], system=system_), typ="notice", mention=not system_))
                 elif spaced[1] == "001":
-                    cache.append(ParserMessage(content="Server reports name \"" + spaced[6] + "\"", name="Connection"))
+                    cache.append(ParserMessage(content="Server reports name \"" + spaced[6] + "\""))
                 elif spaced[1] == "003":
-                    cache.append(ParserMessage(content="Server reports creation time " + " ".join(spaced[7:]), name="ScParse"))
+                    cache.append(ParserMessage(content="Server reports creation time " + " ".join(spaced[7:])))
                 elif spaced[1] == "433":
                     cache.append(SystemMessage(content=" ".join(spaced[4:])[1:],user=User(name=spaced[0][1:], system=True), typ="error", mention=True))
         if len(cache) == 1:
