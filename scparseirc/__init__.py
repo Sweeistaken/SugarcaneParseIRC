@@ -6,13 +6,16 @@ import ssl as ssl_module
 import threading
 __version__ = "_TEST_"
 class SystemMessage: # System message object
-    def __init__(self, content:str, user:str, typ:str, mention:bool, chan=None):
+    def __init__(self, content:str, user:str, typ:str, mention:bool, chan:str|None=None):
         self.content, self.user, self.type, self.mention, self.chan = content,user,typ,mention,chan
 class Message: # Message object
     def __init__(self, content:str, chan:str, nick:str):
         self.content = content
         self.channel = chan
         self.nick = nick
+class ParserMessage: # Parser message
+    def __init__(self, content, name:str="Parser", chan:str|None=None):
+        self.content, self.name, self.chan = content, name, chan
 class Channel: # Channel object
     is_init = False # If the channel's properties are initialized yet
     topic = "" # Channel topic
@@ -42,6 +45,7 @@ class IRCSession: # Actual IRC session
         self.wsocket = None
         self.server, self.port, self.nick, self.user, self.ssl, self.ssl_accept_invalid, self.realname = address,port,nick,user,ssl,ssl_igninvalid,realname
         self.msgcache_index=0
+        self.motd = ""
         if ssl:
             if ssl_igninvalid:
                 self.context = ssl_module._create_unverified_context()
@@ -114,10 +118,6 @@ class IRCSession: # Actual IRC session
         threading.Thread(target=self._dump_message_cache, kwargs={"content": self.raw_text}).start()
     def _dump_message_cache(self, content:str): # The thread of parsing all of the raw data, dumping all of it in the messages list.
         self.messages = self.parse(content)
-        if self.msgcache_index+1 < len(self.messages):
-            self.msgcache_index = len(self.messages)-1
-    def message(self, message:Message):
-        return message
     def parse(self, content:str): # Attempt to parse raw data into a Message or SystemMessage object
         cache = []
         for i in content.replace("\r\n", "\n").split("\n"):
@@ -126,6 +126,10 @@ class IRCSession: # Actual IRC session
             if len(spaced) > 4:
                 if spaced[1] == "NOTICE":
                     cache.append(SystemMessage(content=" ".join(spaced[3:])[1:],user=User(name=spaced[0][1:] if not "@" in spaced[0] else spaced[0][1:].split("!")[0], system=system_), typ="notice", mention=not system_))
+                elif spaced[1] == "001":
+                    cache.append(ParserMessage(content="Server reports name \"" + spaced[6], name="Connection"))
+                elif spaced[1] == "003":
+                    cache.append(ParserMessage(content="Server reports creation time " + " ".join(spaced[7:]), name="ScParse"))
                 elif spaced[1] == "433":
                     cache.append(SystemMessage(content=" ".join(spaced[4:])[1:],user=User(name=spaced[0][1:], system=True), typ="error", mention=True))
         if len(cache) == 1:
