@@ -4,9 +4,10 @@ IRC Parser for the SugarCaneIRC family.
 import socket
 import ssl as ssl_module
 import threading
+import traceback
 __version__ = "_TEST_"
 class User: # User object
-    def __init__(self, name:str, system:bool=False, realname:str|None=None, username:str|None=None, host:str|None=None):
+    def __init__(self, name:str, system:bool=False, realname:str|None=None, username:str|None=None, host:str|None=None, mention:bool=False):
         self.name, self.system, self.realname, self.username = name,system,realname,username
 class Channel: # Channel object
     is_init = False # If the channel's properties are initialized yet
@@ -46,6 +47,7 @@ class IRCSession: # Actual IRC session
         self.server, self.port, self.nick, self.user, self.ssl, self.ssl_accept_invalid, self.realname = address,port,nick,user,ssl,ssl_igninvalid,realname
         self.msgcache_index=0
         self.motd = ""
+        self.yourself = User(name=nick, username=user)
         if ssl:
             if ssl_igninvalid:
                 self.context = ssl_module._create_unverified_context()
@@ -67,7 +69,7 @@ class IRCSession: # Actual IRC session
             try:
                 self.get()
             except:
-                pass
+                print(traceback.format_exc())
     def send(self, content:str): # Attempt to send raw data to the socket
         if content[len(content)-1] != "\n":
             content+="\n"
@@ -107,6 +109,7 @@ class IRCSession: # Actual IRC session
             r = self.socket.recv(2040).decode()
         self.raw_text += r
         self.parseall()
+        print(r)
         if r.find("PING") != -1:
             self.send(
                "PONG " + r.split()[1] + "\r\n"
@@ -123,7 +126,7 @@ class IRCSession: # Actual IRC session
         for i in content.replace("\r\n", "\n").split("\n"):
             spaced = i.split(" ")
             system_ = not "@" in spaced[0]
-            if len(spaced) > 4:
+            if len(spaced) > 1:
                 if spaced[1] == "NOTICE": # Notice (Can be sent from the server or a user.)
                     cache.append(SystemMessage(content=" ".join(spaced[3:])[1:],user=User(name=spaced[0][1:] if not "@" in spaced[0] else spaced[0][1:].split("!")[0], system=system_), typ="notice", mention=not system_))
                 elif spaced[1] == "001": # Type 001 (Welcome to ... Internet Relay Chat Network [nick])
@@ -136,7 +139,8 @@ class IRCSession: # Actual IRC session
 
                 elif spaced[1] == "PRIVMSG": # IRC messages
                     token1=spaced[0][1:]
-                    cache.append(Message(content=" ".join(spaced[4:])[1:], user=User(name=token1.split("!")[0], username=token1.split("!")[1].split("@")[0], host=token1.split("!")[1].split("@")[1])))
+                    channel = spaced[2]
+                    cache.append(Message(content=" ".join(spaced[4:])[1:-2], user=User(name=token1.split("!")[0], username=token1.split("!")[1].split("@")[0], host=token1.split("!")[1].split("@")[1]), target=Channel(name=channel) if channel[0] == "#" else self.yourself))
         if len(cache) == 1:
             return cache[0]
         else:
