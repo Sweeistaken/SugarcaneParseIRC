@@ -127,7 +127,7 @@ class IRCSession: # Actual IRC session
                 if spaced[1] == "NOTICE":
                     cache.append(SystemMessage(content=" ".join(spaced[3:])[1:],user=User(name=spaced[0][1:] if not "@" in spaced[0] else spaced[0][1:].split("!")[0], system=system_), typ="notice", mention=not system_))
                 elif spaced[1] == "001":
-                    cache.append(ParserMessage(content="Server reports name \"" + spaced[6], name="Connection"))
+                    cache.append(ParserMessage(content="Server reports name \"" + spaced[6] + "\"", name="Connection"))
                 elif spaced[1] == "003":
                     cache.append(ParserMessage(content="Server reports creation time " + " ".join(spaced[7:]), name="ScParse"))
                 elif spaced[1] == "433":
