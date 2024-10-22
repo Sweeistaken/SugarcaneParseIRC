@@ -133,6 +133,8 @@ class IRCSession: # Actual IRC session
                     cache.append(ParserMessage(content="Server reports name \"" + spaced[6] + "\""))
                 elif spaced[1] == "003": # Type 003 (Server was created in...)
                     cache.append(ParserMessage(content="Server reports creation time " + " ".join(spaced[7:])))
+                
+                
                 elif spaced[1] == "433": # Type 443 (Nick already in use)
                     cache.append(SystemMessage(content=" ".join(spaced[4:])[1:],user=User(name=spaced[0][1:], system=True), typ="error", mention=True))
 
